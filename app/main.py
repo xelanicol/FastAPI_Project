@@ -3,15 +3,13 @@
 
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
-from pydantic import BaseModel
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
-from . import models #import from current dir
+from . import models, schemas #import from current dir
 from .database import engine, get_db
 from sqlalchemy.orm import Session
-
 # create tables using SQLalchemy
 models.Base.metadata.create_all(bind=engine)
 
@@ -19,11 +17,7 @@ app = FastAPI()
 
 # from FASTAPI Documentation:
 
-class Post(BaseModel):
-    title: str # validation 
-    content: str # validation
-    published: bool = True # validation with default value if left blank
-    # rating: Optional[int] = None # fully optional field, defaults to None, uses Optional module   
+  
 
 while True:
     try: # best to use try-except in case it fails
@@ -58,12 +52,6 @@ def find_index_post(id):
 def root(): # previously had 'async' before def, removed because optional
     return {"message":"Welcome to my *changed* API"} # FastAPI will convert this to JSON when sent to browser
 
-@app.get("/sqlalchemy")
-def test_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all() # Note how use of ORM (sqlalchemy) means no SQL code here!
-    # equivalent of 'SELECT * FROM posts'
-    return {"data":posts}
-
 # GET path operation (using raw SQL)
 # go to root/posts to get this!
 # @app.get("/posts") # if we put only "/" then it will go to the first method in the script with this path (root())
@@ -76,7 +64,7 @@ def test_posts(db: Session = Depends(get_db)):
 @app.get("/posts") # if we put only "/" then it will go to the first method in the script with this path (root())
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {"data":posts}
+    return posts
 
 # POST path operation (raw SQL)
 # @app.post("/createposts", status_code=status.HTTP_201_CREATED) # HTTP POST method. NB. not best practice to do this
@@ -90,12 +78,12 @@ def get_posts(db: Session = Depends(get_db)):
 
 # POST path operation (ORM: sqlalchemy)
 @app.post("/createposts", status_code=status.HTTP_201_CREATED)
-def create_posts(post: Post, db: Session = Depends(get_db)):
+def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     new_post = models.Post(**post.model_dump()) # unpack object-converted-to-dict to get all fields from object
     db.add(new_post)
     db.commit()
     db.refresh(new_post) # retrieve new post (after defaults added)
-    return {"data":new_post}
+    return new_post
 
 # GET/ID path operation (raw SQL)
 # @app.get("/posts/{id}")
@@ -118,7 +106,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
     # we know there is just 1, so use .first() (because ID is unique)
     if not post:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} was not found")
-    return {"data":post}
+    return post
 
 # DELETE path operation (raw SQL)
 # @app.delete("/posts/{id}")
@@ -156,12 +144,12 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 # UPDATE path operation (ORM: sqlalchemy)
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
     if not post_query.first(): #if post doesn't exist
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} was not found")
     post_query.update(post.model_dump(), synchronize_session=False)
     db.commit()
-    return {"data":post_query.first()}
+    return post_query.first()
 
 
