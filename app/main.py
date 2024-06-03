@@ -1,7 +1,7 @@
 # cd app
 # run in terminal: uvicorn main:app --reload
 
-from typing import Optional
+from typing import Optional, List
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 from random import randrange
 import psycopg2
@@ -62,7 +62,7 @@ def root(): # previously had 'async' before def, removed because optional
 
 # GET path operation (using ORM: sqlalchemy)
 @app.get("/posts") # if we put only "/" then it will go to the first method in the script with this path (root())
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db), response_model=List[schemas.PostResponse]):
     posts = db.query(models.Post).all()
     return posts
 
@@ -77,7 +77,7 @@ def get_posts(db: Session = Depends(get_db)):
 #     return {"data":new_post}
 
 # POST path operation (ORM: sqlalchemy)
-@app.post("/createposts", status_code=status.HTTP_201_CREATED)
+@app.post("/createposts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     new_post = models.Post(**post.model_dump()) # unpack object-converted-to-dict to get all fields from object
     db.add(new_post)
@@ -100,7 +100,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
 #     return {'post_detail':post}
 
 # GET/ID path operation (ORM: sqlalchemy)
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model = schemas.PostResponse)
 def get_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first() # need .all() or .first() to actually run SQL
     # we know there is just 1, so use .first() (because ID is unique)
@@ -143,7 +143,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 #     return {"data":updated_post}
 
 # UPDATE path operation (ORM: sqlalchemy)
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
 def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(models.Post.id == id)
     if not post_query.first(): #if post doesn't exist
