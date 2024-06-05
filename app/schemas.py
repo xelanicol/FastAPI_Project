@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 # schema / Pydantic model - will do some validation for BODY of HTML request
@@ -14,3 +14,13 @@ class PostCreate(PostBase): # class inheritance
 
 class PostResponse(PostBase): # for containing response from server to user
     created_at: datetime
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+
