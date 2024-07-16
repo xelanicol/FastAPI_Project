@@ -1,4 +1,3 @@
-# cd app
 # run in terminal: uvicorn app.main:app --reload
 
 from typing import List
