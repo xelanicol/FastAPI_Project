@@ -9,11 +9,13 @@ import time
 from . import models #import from current dir
 from .database import engine, get_db
 from .routers import post, user, auth
+from .config import settings
 
 # create tables using SQLalchemy
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+print(settings)
 
 # from FASTAPI Documentation:
 
