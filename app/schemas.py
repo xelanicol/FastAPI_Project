@@ -40,5 +40,9 @@ class TokenData(BaseModel):
     id: int # Optional[str] = None
 
 class Vote(BaseModel):
-    id: int
+    vote_id: int
     dir: Annotated[int, Field(strict=True, le=1)] # restrict to 0, 1
+
+class PostOut(BaseModel):
+    Post: PostResponse
+    votes: int
