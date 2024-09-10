@@ -30,17 +30,17 @@ print(settings)
 
 # from FASTAPI Documentation:
 
-while True:
-    try: # best to use try-except in case it fails
-        conn = psycopg2.connect(host = 'localhost', database = 'fastapi',
-                                user = 'postgres', password='Galactica91', cursor_factory=RealDictCursor)
-        cursor = conn.cursor()
-        print('Database connection was successful!')
-        break
-    except Exception as error:
-        print("Connecting to database failed")
-        print("Error:", error)
-        time.sleep(2)
+# while True:
+#     try: # best to use try-except in case it fails
+#         conn = psycopg2.connect(host = 'localhost', database = 'fastapi',
+#                                 user = 'postgres', password='Galactica91', cursor_factory=RealDictCursor)
+#         cursor = conn.cursor()
+#         print('Database connection was successful!')
+#         break
+#     except Exception as error:
+#         print("Connecting to database failed")
+#         print("Error:", error)
+#         time.sleep(2)
 
 
 app.include_router(post.router)
